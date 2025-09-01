@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "status": "active"
+    },
+    {
+      "id": 2,
+      "username": "usuario_normal",
+      "status": "active"
+    },
+    {
+      "id": 3,
+      "username": "invitado",
+      "status": "pending"
+    },
+    {
+      "id": 4,
+      "username": "dev-tester",
+      "status": "active"
+    }
+  ]
+}

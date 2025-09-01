@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Sitio de Prueba de Seguridad - Firewall Inteligente</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; }
+        h1, h2 { color: #333; }
+        .container { border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        #user-list { border-top: 2px solid #333; padding-top: 20px; }
+        .user-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>Sitio de Prueba de Seguridad</h1>
+    <p>Este sitio es un laboratorio para probar la protección de un Firewall de Aplicación Web (WAF) de Cloudflare.</p>
+
+    <div class="container">
+        <h2>Formulario de Contacto (Objetivo para XSS)</h2>
+        <p>Escribe un mensaje. ¡Atención! Si el sitio no estuviera protegido, un código malicioso aquí podría ejecutarse.</p>
+        <form id="contactForm" action="/submit" method="POST">
+            <label for="message">Mensaje:</label><br>
+            <textarea id="message" name="message" rows="4" cols="50"></textarea><br><br>
+            <input type="submit" value="Enviar Mensaje">
+        </form>
+        <div id="form-response"></div>
+    </div>
+
+    <div class="container">
+        <h2>Listado de Usuarios (Objetivo para SQLi)</h2>
+        <p>A continuación, se cargan datos de un archivo. En una aplicación real, se usaría una base de datos. Un ataque SQLi intentaría manipular la petición para obtener esta información.</p>
+        <div id="user-list">
+            </div>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
