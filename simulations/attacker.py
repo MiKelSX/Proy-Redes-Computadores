@@ -1,9 +1,24 @@
 import requests #pip install requests
 import json
 import time
+from datetime import datetime
 
 # Reemplaza esta URL con la que te dio Cloudflare Pages
 URL_APLICACION = "https://proy-redes-computadores.pages.dev/"
+
+def enviar_log_ataque(mensaje, tipo="info"):
+    """Envía un log de ataque a la página web."""
+    try:
+        datos = {
+            "tipo": tipo,
+            "mensaje": mensaje,
+            "timestamp": datetime.now().strftime("%I:%M:%S %p"),
+            "origen": "Atacante"
+        }
+        requests.post(f"{URL_APLICACION}/log", json=datos)
+    except:
+        # Si falla el envío, continuamos con el ataque
+        pass
 
 def simular_ataque_sqli():
     """Simula un ataque de inyección SQL con múltiples payloads."""
@@ -20,20 +35,26 @@ def simular_ataque_sqli():
     ]
     
     for i, payload in enumerate(payloads, 1):
-        print(f"\n📌 Prueba #{i} - Payload: {payload}")
-        print("   Objetivo: " + {
+        objetivo = {
             0: "Bypass de autenticación",
             1: "Comentar resto de la consulta",
             2: "Extraer datos de tabla users",
             3: "Eliminar tabla de usuarios",
             4: "Bypass con comentarios alternativos"
-        }[i-1])
+        }[i-1]
+        
+        print(f"\n📌 Prueba #{i} - Payload: {payload}")
+        print(f"   Objetivo: {objetivo}")
+        
+        # Enviar log del intento de ataque
+        enviar_log_ataque(f"⚠️ Iniciando ataque SQLi #{i}: {objetivo}", "warning")
         
         # La petición maliciosa se envía en la URL
         peticion_sqli = f"{URL_APLICACION}/?search={payload}"
         print(f"   URL maliciosa: {peticion_sqli}")
         
         try:
+            enviar_log_ataque(f"🎯 Intentando SQLi: {payload}", "attack")
             respuesta = requests.get(peticion_sqli)
             print(f"\n   Código de respuesta: {respuesta.status_code}")
             print(f"   Headers de seguridad:")
@@ -42,13 +63,19 @@ def simular_ataque_sqli():
                     print(f"   - {header}: {respuesta.headers[header]}")
             
             if respuesta.status_code == 403:
-                print("\n   ✅ WAF bloqueó el ataque (403 Forbidden)")
+                mensaje = "✅ WAF bloqueó el ataque (403 Forbidden)"
+                print("\n   " + mensaje)
                 if 'cf-ray' in respuesta.headers:
-                    print(f"   🔍 ID del bloqueo: {respuesta.headers['cf-ray']}")
+                    id_bloqueo = respuesta.headers['cf-ray']
+                    print(f"   🔍 ID del bloqueo: {id_bloqueo}")
+                    enviar_log_ataque(f"{mensaje}\n🔍 ID del bloqueo: {id_bloqueo}", "success")
             else:
-                print("\n   ❌ ¡Atención! El ataque no fue bloqueado")
+                mensaje = "❌ ¡Atención! El ataque no fue bloqueado"
+                print("\n   " + mensaje)
+                contenido = respuesta.text[:200].replace('\n', '\n   ')
                 print("   Contenido de la respuesta (primeros 200 caracteres):")
-                print("   " + respuesta.text[:200].replace('\n', '\n   '))
+                print("   " + contenido)
+                enviar_log_ataque(f"{mensaje}\nContenido expuesto: {contenido[:50]}...", "danger")
             
             time.sleep(1)  # Pausa entre ataques
             
@@ -94,6 +121,10 @@ def simular_ataque_xss():
         print(f"   Descripción: {payload_info['descripcion']}")
         print(f"   Payload: {payload_info['payload']}")
         
+        # Enviar log del intento de ataque
+        enviar_log_ataque(f"⚠️ Iniciando ataque XSS #{i}: {payload_info['tipo']}", "warning")
+        enviar_log_ataque(f"📝 Objetivo: {payload_info['descripcion']}", "info")
+        
         # Se envía el payload tanto en URL como en POST
         datos_formulario = {
             "mensaje": payload_info['payload'],
@@ -103,6 +134,7 @@ def simular_ataque_xss():
         # Probar GET request
         try:
             url_con_xss = f"{URL_APLICACION}/?input={payload_info['payload']}"
+            enviar_log_ataque(f"🎯 Intentando XSS via GET: {payload_info['payload']}", "attack")
             print(f"\n   🔍 Probando GET request:")
             print(f"   URL: {url_con_xss}")
             

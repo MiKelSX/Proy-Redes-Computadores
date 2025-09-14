@@ -1,15 +1,46 @@
 document.addEventListener('DOMContentLoaded', () => {
     let users = []; // Almacena los usuarios cargados
+    let stats = {
+        ataques: 0,
+        bloqueados: 0,
+        startTime: new Date()
+    };
+    
     const securityLog = document.getElementById('security-log');
     const attackNotifications = document.getElementById('attack-notifications');
+    const attacksCount = document.getElementById('attacks-count');
+    const blockedCount = document.getElementById('blocked-count');
+    const sessionTime = document.getElementById('session-time');
+
+    // Actualizar el contador de tiempo de sesión
+    setInterval(() => {
+        const now = new Date();
+        const diff = Math.floor((now - stats.startTime) / 1000);
+        const minutes = Math.floor(diff / 60).toString().padStart(2, '0');
+        const seconds = (diff % 60).toString().padStart(2, '0');
+        sessionTime.textContent = `${minutes}:${seconds}`;
+    }, 1000);
 
     // Función para agregar entradas al log de seguridad
     function logSecurityEvent(message, type = 'info') {
         const timestamp = new Date().toLocaleTimeString();
         const logEntry = document.createElement('div');
         logEntry.className = `log-entry ${type}`;
-        logEntry.innerHTML = `[${timestamp}] ${message}`;
+        logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
         securityLog.insertBefore(logEntry, securityLog.firstChild);
+        
+        // Actualizar estadísticas
+        if (type === 'attack' || type === 'warning') {
+            stats.ataques++;
+            attacksCount.textContent = stats.ataques;
+        }
+        if (type === 'success') {
+            stats.bloqueados++;
+            blockedCount.textContent = stats.bloqueados;
+        }
+        
+        // Auto-scroll al último mensaje
+        securityLog.scrollTop = 0;
     }
 
     // Función para mostrar notificación de ataque
@@ -146,6 +177,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Limpiar el formulario
         contactForm.reset();
     });
+
+    // Función para recibir logs del atacante
+    async function checkAttackLogs() {
+        try {
+            const response = await fetch(`${window.location.origin}/log`);
+            const logs = await response.json();
+            if (logs && logs.length > 0) {
+                logs.forEach(log => {
+                    logSecurityEvent(log.mensaje, log.tipo);
+                });
+            }
+        } catch (error) {
+            console.error('Error al revisar logs de ataque:', error);
+        }
+    }
+
+    // Revisar logs de ataque cada segundo
+    setInterval(checkAttackLogs, 1000);
 
     // Inicializar la página
     loadUsers();
