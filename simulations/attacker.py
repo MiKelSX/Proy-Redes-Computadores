@@ -55,7 +55,11 @@ def simular_ataque_sqli():
         
         try:
             enviar_log_ataque(f"🎯 Intentando SQLi: {payload}", "attack")
-            respuesta = requests.get(peticion_sqli)
+            headers = {
+                "User-Agent": payload
+                }
+            respuesta = requests.get(peticion_sqli, headers=headers)
+
             print(f"\n   Código de respuesta: {respuesta.status_code}")
             print(f"   Headers de seguridad:")
             for header in ['cf-ray', 'cf-cache-status', 'cf-mitigated']:
@@ -138,14 +142,17 @@ def simular_ataque_xss():
             print(f"\n   🔍 Probando GET request:")
             print(f"   URL: {url_con_xss}")
             
-            respuesta = requests.get(url_con_xss)
+            headers = {
+                 "Referer": payload_info['payload']
+                 }
+            respuesta = requests.get(url_con_xss, headers=headers)
             mostrar_resultado_ataque(respuesta)
             
             # Probar POST request
             print(f"\n   🔍 Probando POST request:")
             print(f"   Datos: {datos_formulario}")
             
-            respuesta = requests.post(f"{URL_APLICACION}/submit", data=datos_formulario)
+            respuesta = requests.post(f"{URL_APLICACION}/submit", data=datos_formulario, headers=headers)
             mostrar_resultado_ataque(respuesta)
             
             time.sleep(1)  # Pausa entre ataques
