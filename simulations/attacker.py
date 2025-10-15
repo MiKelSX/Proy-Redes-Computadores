@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 
 # Reemplaza esta URL con la que te dio Cloudflare Pages
-URL_APLICACION = "https://proy-redes-computadores.pages.dev/"
+URL_APLICACION = "https://www.proyredes.art"
 
 def enviar_log_ataque(mensaje, tipo="info"):
     """Envía un log de ataque a la página web."""
