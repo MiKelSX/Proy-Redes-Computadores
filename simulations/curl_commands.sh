@@ -5,7 +5,7 @@
 
 # Reemplaza esta variable con la URL de tu sitio en Cloudflare Pages
 # Ejemplo: https://proyecto-firewall.pages.dev
-DOMAIN="https://tu-dominio.pages.dev"
+DOMAIN="https://www.proyredes.art"
 
 echo "=========================================="
 echo "Iniciando simulaciones de ataque con cURL"
