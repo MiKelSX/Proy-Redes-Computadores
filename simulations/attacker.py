@@ -22,7 +22,7 @@ def enviar_log_ataque(mensaje, tipo="info"):
 
 def simular_ataque_sqli():
     #Simula un ataque de inyección SQL con múltiples payloads.
-    print("╠════════════════════════════════════════════════════════════╣")
+    print("╔════════════════════════════════════════════════════════════╗")
     print("║ [~] Iniciando simulación de ataques SQL Injection (SQLi)...")
     print("╚════════════════════════════════════════════════════════════╝")
     print("\n[info] SQLi intenta manipular consultas SQL para acceder o modificar datos\n")
@@ -90,7 +90,7 @@ def simular_ataque_sqli():
 
 def simular_ataque_xss():
     #Simula múltiples variantes de ataques Cross-Site Scripting (XSS).
-    print("\n╠════════════════════════════════════════════════════════════╣")
+    print("\n╔════════════════════════════════════════════════════════════╗")
     print("║ [~] Iniciando simulación de ataques Cross-Site Scripting (XSS)...")
     print("╚════════════════════════════════════════════════════════════╝")
     print("\n[info] XSS permite inyectar scripts maliciosos que se ejecutan en el navegador de la víctima\n")
@@ -227,7 +227,7 @@ def simular_ataque_bot():
 
 if __name__ == "__main__":
     print("\n╠════════════════════════════════════════════════════════════╣")
-    print("║ Script de Simulación de Ataques Web - Prueba de Seguridad ║")
+    print("║ Script de Simulación de Ataques Web - Prueba de Seguridad  ║")
     print("╚════════════════════════════════════════════════════════════╝")
     print("\n[info] Este script simula tres tipos comunes de ataques web para probar la seguridad:")
     print("\n[#] 1. SQL Injection (SQLi):")
@@ -243,20 +243,20 @@ if __name__ == "__main__":
     print("    - El WAF/Challenge debe bloquear o lanzar CAPTCHA")
     
     print(f"\n[info] URL objetivo: {URL_APLICACION}")
-    print("╠════════════════════════════════════════════════════════════╣\n")
+    print("═════════════════════════════════════════════════════════════\n")
     
     input("[~] Presiona Enter para iniciar la simulación de ataques...")
     
     #Ejecutar la simulación de SQLi
     simular_ataque_sqli()
     
-    print("\n╠════════════════════════════════════════════════════════════╣\n")
+    print("\n════════════════════════════════════════════════════════════\n")
     time.sleep(2)
     
     #Ejecutar la simulación de XSS
     simular_ataque_xss()
     
-    print("\n╠════════════════════════════════════════════════════════════╣\n")
+    print("\n════════════════════════════════════════════════════════════\n")
     time.sleep(2)
     
     #Ejecutar la simulación de Bots/Captcha
