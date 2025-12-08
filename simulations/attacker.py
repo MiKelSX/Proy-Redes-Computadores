@@ -177,22 +177,65 @@ def mostrar_resultado_ataque(respuesta):
         print("   Contenido de la respuesta (primeros 200 caracteres):")
         print("   " + respuesta.text[:200].replace('\n', '\n   '))
 
+def simular_ataque_bot():
+    """Simula múltiples intentos de bots para evadir CAPTCHA/Challenge."""
+    print("\n\n🤖 Iniciando simulación de ataques Bot/Captcha...")
+    print("ℹ️  Objetivo: Verificar que Cloudflare detiene intentos automatizados.")
+    
+    # Lista de identidades simuladas de bots
+    user_agents_bots = [
+        "python-requests/script-malicioso-v1",
+        "Mozilla/5.0 (compatible; EvilBot/1.0)",
+        "curl/7.64.1 (headless-scraper)",
+        "Go-http-client/1.1 (bot-network)",
+        "Apache-HttpClient/4.5.13 (Java/1.8)",
+        "Wget/1.21.1 (linux-gnu)"
+    ]
+
+    for i, agente in enumerate(user_agents_bots, 1):
+        print(f"\n📌 Intento de Bot #{i} de {len(user_agents_bots)}")
+        print(f"   Identidad simulada: {agente}")
+        
+        try:
+            headers = {
+                "User-Agent": agente,
+                "Accept": "text/html,application/xhtml+xml"
+            }
+            respuesta = requests.get(URL_APLICACION, headers=headers)
+            
+            print(f"\n   Código de respuesta: {respuesta.status_code}")
+            if respuesta.status_code == 403:
+                print("   ✅ WAF bloqueó el bot (403 Forbidden)")
+                if 'cf-ray' in respuesta.headers:
+                    print(f"   🔍 ID del bloqueo: {respuesta.headers['cf-ray']}")
+            else:
+                print("   ❌ ¡Atención! El bot no fue bloqueado")
+                contenido = respuesta.text[:200].replace('\n', '\n   ')
+                print("   Contenido parcial de la respuesta:")
+                print("   " + contenido)
+            
+            time.sleep(1)
+        
+        except requests.exceptions.RequestException as e:
+            print(f"   ❌ Error en la petición: {e}")
+
 if __name__ == "__main__":
     print("\n🔒 Script de Simulación de Ataques Web - Prueba de Seguridad Cloudflare 🔒")
     print("=" * 70)
-    print("\nEste script simula dos tipos comunes de ataques web para probar la seguridad:")
+    print("\nEste script simula tres tipos comunes de ataques web para probar la seguridad:")
     print("\n1. SQL Injection (SQLi):")
     print("   - Intenta explotar vulnerabilidades en la base de datos")
-    print("   - Puede permitir acceso no autorizado a datos sensibles")
     print("   - El WAF debe detectar y bloquear patrones maliciosos en la URL")
     
     print("\n2. Cross-Site Scripting (XSS):")
     print("   - Intenta inyectar código JavaScript malicioso")
-    print("   - Puede robar cookies de sesión o modificar el contenido de la página")
     print("   - El WAF debe detectar y bloquear scripts maliciosos")
     
-    print("\nObjetivo: Verificar que el WAF de Cloudflare bloquea estos ataques")
-    print("URL objetivo:", URL_APLICACION)
+    print("\n3. Bots/Captcha:")
+    print("   - Simula intentos automatizados con diferentes User-Agent")
+    print("   - El WAF/Challenge debe bloquear o lanzar CAPTCHA")
+    
+    print("\nURL objetivo:", URL_APLICACION)
     print("=" * 70 + "\n")
     
     input("Presiona Enter para iniciar la simulación de ataques...")
@@ -205,3 +248,12 @@ if __name__ == "__main__":
     
     # Ejecutar la simulación de XSS
     simular_ataque_xss()
+    
+    print("\n" + "=" * 70 + "\n")
+    time.sleep(2) # Espera 2 segundos antes del siguiente ataque
+    
+    # Ejecutar la simulación de Bots/Captcha
+    simular_ataque_bot()
+    
+    print("\n" + "=" * 70)
+    print("🏁 Auditoría finalizada.")
