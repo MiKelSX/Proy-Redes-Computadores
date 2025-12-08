@@ -23,7 +23,7 @@ def enviar_log_ataque(mensaje, tipo="info"):
 def simular_ataque_sqli():
     #Simula un ataque de inyección SQL con múltiples payloads.
     print("╔════════════════════════════════════════════════════════════╗")
-    print("║ [~] Iniciando simulación de ataques SQL Injection (SQLi)...")
+    print("║ [~] Iniciando simulación de ataques SQL Injection (SQLi)   ║")
     print("╚════════════════════════════════════════════════════════════╝")
     print("\n[info] SQLi intenta manipular consultas SQL para acceder o modificar datos\n")
     
@@ -90,9 +90,9 @@ def simular_ataque_sqli():
 
 def simular_ataque_xss():
     #Simula múltiples variantes de ataques Cross-Site Scripting (XSS).
-    print("\n╔════════════════════════════════════════════════════════════╗")
-    print("║ [~] Iniciando simulación de ataques Cross-Site Scripting (XSS)...")
-    print("╚════════════════════════════════════════════════════════════╝")
+    print("\n╔═════════════════════════════════════════════════════════════════╗")
+    print("║ [~] Iniciando simulación de ataques Cross-Site Scripting (XSS)  ║")
+    print("╚═════════════════════════════════════════════════════════════════╝")
     print("\n[info] XSS permite inyectar scripts maliciosos que se ejecutan en el navegador de la víctima\n")
     
     #Lista de payloads XSS comunes con diferentes técnicas
@@ -183,8 +183,8 @@ def mostrar_resultado_ataque(respuesta):
 
 def simular_ataque_bot():
     #Simula múltiples intentos de bots para evadir CAPTCHA/Challenge.
-    print("\n╠════════════════════════════════════════════════════════════╣")
-    print("║ [~] Iniciando simulación de ataques Bot/Captcha...")
+    print("\n╠════════════════════════════════════════════════════════════╗")
+    print("║ [~] Iniciando simulación de ataques Bot/Captcha...         ║")
     print("╚════════════════════════════════════════════════════════════╝")
     print("\n[info] Objetivo: Verificar que Cloudflare detiene intentos automatizados.\n")
     
@@ -226,7 +226,7 @@ def simular_ataque_bot():
             print(f"    [✖] Error en la petición: {e}")
 
 if __name__ == "__main__":
-    print("\n╠════════════════════════════════════════════════════════════╣")
+    print("\n╔════════════════════════════════════════════════════════════╗")
     print("║ Script de Simulación de Ataques Web - Prueba de Seguridad  ║")
     print("╚════════════════════════════════════════════════════════════╝")
     print("\n[info] Este script simula tres tipos comunes de ataques web para probar la seguridad:")
@@ -262,6 +262,6 @@ if __name__ == "__main__":
     #Ejecutar la simulación de Bots/Captcha
     simular_ataque_bot()
     
-    print("\n╠════════════════════════════════════════════════════════════╣")
-    print("║ [✓] Auditoría finalizada.")
+    print("\n╔════════════════════════════════════════════════════════════╗")
+    print("║ [✓] Auditoría finalizada                                   ║")
     print("╚════════════════════════════════════════════════════════════╝")
