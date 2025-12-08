@@ -3,11 +3,11 @@ import json
 import time
 from datetime import datetime
 
-# Reemplaza esta URL con la que te dio Cloudflare Pages
+#Reemplaza esta URL con la que te dio Cloudflare Pages
 URL_APLICACION = "https://www.proyredes.art"
 
 def enviar_log_ataque(mensaje, tipo="info"):
-    """Envía un log de ataque a la página web."""
+    #Envía un log de ataque a la página web.
     try:
         datos = {
             "tipo": tipo,
@@ -17,21 +17,23 @@ def enviar_log_ataque(mensaje, tipo="info"):
         }
         requests.post(f"{URL_APLICACION}/log", json=datos)
     except:
-        # Si falla el envío, continuamos con el ataque
+        #Si falla el envío, continuamos con el ataque
         pass
 
 def simular_ataque_sqli():
-    """Simula un ataque de inyección SQL con múltiples payloads."""
-    print("🚀 Iniciando simulación de ataques SQL Injection (SQLi)...")
-    print("\nℹ️  SQLi intenta manipular consultas SQL para acceder o modificar datos")
+    #Simula un ataque de inyección SQL con múltiples payloads.
+    print("╠════════════════════════════════════════════════════════════╣")
+    print("║ [~] Iniciando simulación de ataques SQL Injection (SQLi)...")
+    print("╚════════════════════════════════════════════════════════════╝")
+    print("\n[info] SQLi intenta manipular consultas SQL para acceder o modificar datos\n")
     
-    # Lista de payloads comunes de SQLi
+    #Lista de payloads comunes de SQLi
     payloads = [
-        "' OR '1'='1",  # Bypass de autenticación básico
-        "' OR 1=1--",   # Comentar el resto de la consulta
-        "' UNION SELECT * FROM users--",  # Intentar extraer datos de otra tabla
-        "'; DROP TABLE users--",  # Intentar eliminar una tabla
-        "' OR '1'='1' /*",  # Bypass usando comentarios
+        "' OR '1'='1",
+        "' OR 1=1--",
+        "' UNION SELECT * FROM users--",
+        "'; DROP TABLE users--",
+        "' OR '1'='1' /*",
     ]
     
     for i, payload in enumerate(payloads, 1):
@@ -43,55 +45,57 @@ def simular_ataque_sqli():
             4: "Bypass con comentarios alternativos"
         }[i-1]
         
-        print(f"\n📌 Prueba #{i} - Payload: {payload}")
-        print(f"   Objetivo: {objetivo}")
+        print(f"[#] Prueba #{i} - Payload: {payload}")
+        print(f"    Objetivo: {objetivo}")
         
-        # Enviar log del intento de ataque
-        enviar_log_ataque(f"⚠️ Iniciando ataque SQLi #{i}: {objetivo}", "warning")
+        #Enviar log del intento de ataque
+        enviar_log_ataque(f"[~] Iniciando ataque SQLi #{i}: {objetivo}", "warning")
         
-        # La petición maliciosa se envía en la URL
+        #La petición maliciosa se envía en la URL
         peticion_sqli = f"{URL_APLICACION}/?search={payload}"
-        print(f"   URL maliciosa: {peticion_sqli}")
+        print(f"    URL maliciosa: {peticion_sqli}")
         
         try:
-            enviar_log_ataque(f"🎯 Intentando SQLi: {payload}", "attack")
+            enviar_log_ataque(f"[#] Intentando SQLi: {payload}", "attack")
             headers = {
                 "User-Agent": payload
                 }
             respuesta = requests.get(peticion_sqli, headers=headers)
 
-            print(f"\n   Código de respuesta: {respuesta.status_code}")
-            print(f"   Headers de seguridad:")
+            print(f"\n    Código de respuesta: {respuesta.status_code}")
+            print(f"    Headers de seguridad:")
             for header in ['cf-ray', 'cf-cache-status', 'cf-mitigated']:
                 if header in respuesta.headers:
-                    print(f"   - {header}: {respuesta.headers[header]}")
+                    print(f"    - {header}: {respuesta.headers[header]}")
             
             if respuesta.status_code == 403:
-                mensaje = "✅ WAF bloqueó el ataque (403 Forbidden)"
-                print("\n   " + mensaje)
+                mensaje = "[✓] WAF bloqueó el ataque (403 Forbidden)"
+                print("\n    " + mensaje)
                 if 'cf-ray' in respuesta.headers:
                     id_bloqueo = respuesta.headers['cf-ray']
-                    print(f"   🔍 ID del bloqueo: {id_bloqueo}")
-                    enviar_log_ataque(f"{mensaje}\n🔍 ID del bloqueo: {id_bloqueo}", "success")
+                    print(f"    [info] ID del bloqueo: {id_bloqueo}")
+                    enviar_log_ataque(f"{mensaje}\n[info] ID del bloqueo: {id_bloqueo}", "success")
             else:
-                mensaje = "❌ ¡Atención! El ataque no fue bloqueado"
-                print("\n   " + mensaje)
-                contenido = respuesta.text[:200].replace('\n', '\n   ')
-                print("   Contenido de la respuesta (primeros 200 caracteres):")
-                print("   " + contenido)
+                mensaje = "[✖] ¡Atención! El ataque no fue bloqueado"
+                print("\n    " + mensaje)
+                contenido = respuesta.text[:200].replace('\n', '\n    ')
+                print("    Contenido de la respuesta (primeros 200 caracteres):")
+                print("    " + contenido)
                 enviar_log_ataque(f"{mensaje}\nContenido expuesto: {contenido[:50]}...", "danger")
             
-            time.sleep(1)  # Pausa entre ataques
+            time.sleep(1)
             
         except requests.exceptions.RequestException as e:
-            print(f"\n   ❌ Error en la petición: {e}")
+            print(f"\n    [✖] Error en la petición: {e}")
 
 def simular_ataque_xss():
-    """Simula múltiples variantes de ataques Cross-Site Scripting (XSS)."""
-    print("\n\n🚀 Iniciando simulación de ataques Cross-Site Scripting (XSS)...")
-    print("\nℹ️  XSS permite inyectar scripts maliciosos que se ejecutan en el navegador de la víctima")
+    #Simula múltiples variantes de ataques Cross-Site Scripting (XSS).
+    print("\n╠════════════════════════════════════════════════════════════╣")
+    print("║ [~] Iniciando simulación de ataques Cross-Site Scripting (XSS)...")
+    print("╚════════════════════════════════════════════════════════════╝")
+    print("\n[info] XSS permite inyectar scripts maliciosos que se ejecutan en el navegador de la víctima\n")
     
-    # Lista de payloads XSS comunes con diferentes técnicas
+    #Lista de payloads XSS comunes con diferentes técnicas
     payloads_xss = [
         {
             "payload": "<script>alert('XSS')</script>",
@@ -121,26 +125,26 @@ def simular_ataque_xss():
     ]
     
     for i, payload_info in enumerate(payloads_xss, 1):
-        print(f"\n📌 Prueba #{i} - {payload_info['tipo']}")
-        print(f"   Descripción: {payload_info['descripcion']}")
-        print(f"   Payload: {payload_info['payload']}")
+        print(f"[#] Prueba #{i} - {payload_info['tipo']}")
+        print(f"    Descripción: {payload_info['descripcion']}")
+        print(f"    Payload: {payload_info['payload']}")
         
-        # Enviar log del intento de ataque
-        enviar_log_ataque(f"⚠️ Iniciando ataque XSS #{i}: {payload_info['tipo']}", "warning")
-        enviar_log_ataque(f"📝 Objetivo: {payload_info['descripcion']}", "info")
+        #Enviar log del intento de ataque
+        enviar_log_ataque(f"[~] Iniciando ataque XSS #{i}: {payload_info['tipo']}", "warning")
+        enviar_log_ataque(f"[info] Objetivo: {payload_info['descripcion']}", "info")
         
-        # Se envía el payload tanto en URL como en POST
+        #Se envía el payload tanto en URL como en POST
         datos_formulario = {
             "mensaje": payload_info['payload'],
             "comentario": "Test XSS"
         }
         
-        # Probar GET request
+        #Probar GET request
         try:
             url_con_xss = f"{URL_APLICACION}/?input={payload_info['payload']}"
-            enviar_log_ataque(f"🎯 Intentando XSS via GET: {payload_info['payload']}", "attack")
-            print(f"\n   🔍 Probando GET request:")
-            print(f"   URL: {url_con_xss}")
+            enviar_log_ataque(f"[#] Intentando XSS via GET: {payload_info['payload']}", "attack")
+            print(f"\n    [~] Probando GET request:")
+            print(f"    URL: {url_con_xss}")
             
             headers = {
                  "Referer": payload_info['payload']
@@ -148,41 +152,43 @@ def simular_ataque_xss():
             respuesta = requests.get(url_con_xss, headers=headers)
             mostrar_resultado_ataque(respuesta)
             
-            # Probar POST request
-            print(f"\n   🔍 Probando POST request:")
-            print(f"   Datos: {datos_formulario}")
+            #Probar POST request
+            print(f"\n    [~] Probando POST request:")
+            print(f"    Datos: {datos_formulario}")
             
             respuesta = requests.post(f"{URL_APLICACION}/submit", data=datos_formulario, headers=headers)
             mostrar_resultado_ataque(respuesta)
             
-            time.sleep(1)  # Pausa entre ataques
+            time.sleep(1)
             
         except requests.exceptions.RequestException as e:
-            print(f"\n   ❌ Error en la petición: {e}")
+            print(f"\n    [✖] Error en la petición: {e}")
             
 def mostrar_resultado_ataque(respuesta):
-    """Muestra el resultado detallado de un ataque."""
-    print(f"\n   Código de respuesta: {respuesta.status_code}")
-    print(f"   Headers de seguridad:")
+    #Muestra el resultado detallado de un ataque.
+    print(f"\n    Código de respuesta: {respuesta.status_code}")
+    print(f"    Headers de seguridad:")
     for header in ['cf-ray', 'cf-cache-status', 'cf-mitigated', 'content-security-policy']:
         if header in respuesta.headers:
-            print(f"   - {header}: {respuesta.headers[header]}")
+            print(f"    - {header}: {respuesta.headers[header]}")
     
     if respuesta.status_code == 403:
-        print("\n   ✅ WAF bloqueó el ataque (403 Forbidden)")
+        print("\n    [✓] WAF bloqueó el ataque (403 Forbidden)")
         if 'cf-ray' in respuesta.headers:
-            print(f"   🔍 ID del bloqueo: {respuesta.headers['cf-ray']}")
+            print(f"    [info] ID del bloqueo: {respuesta.headers['cf-ray']}")
     else:
-        print("\n   ❌ ¡Atención! El ataque no fue bloqueado")
-        print("   Contenido de la respuesta (primeros 200 caracteres):")
-        print("   " + respuesta.text[:200].replace('\n', '\n   '))
+        print("\n    [✖] ¡Atención! El ataque no fue bloqueado")
+        print("    Contenido de la respuesta (primeros 200 caracteres):")
+        print("    " + respuesta.text[:200].replace('\n', '\n    '))
 
 def simular_ataque_bot():
-    """Simula múltiples intentos de bots para evadir CAPTCHA/Challenge."""
-    print("\n\n🤖 Iniciando simulación de ataques Bot/Captcha...")
-    print("ℹ️  Objetivo: Verificar que Cloudflare detiene intentos automatizados.")
+    #Simula múltiples intentos de bots para evadir CAPTCHA/Challenge.
+    print("\n╠════════════════════════════════════════════════════════════╣")
+    print("║ [~] Iniciando simulación de ataques Bot/Captcha...")
+    print("╚════════════════════════════════════════════════════════════╝")
+    print("\n[info] Objetivo: Verificar que Cloudflare detiene intentos automatizados.\n")
     
-    # Lista de identidades simuladas de bots
+    #Lista de identidades simuladas de bots
     user_agents_bots = [
         "python-requests/script-malicioso-v1",
         "Mozilla/5.0 (compatible; EvilBot/1.0)",
@@ -193,8 +199,8 @@ def simular_ataque_bot():
     ]
 
     for i, agente in enumerate(user_agents_bots, 1):
-        print(f"\n📌 Intento de Bot #{i} de {len(user_agents_bots)}")
-        print(f"   Identidad simulada: {agente}")
+        print(f"\n[#] Intento de Bot #{i} de {len(user_agents_bots)}")
+        print(f"    Identidad simulada: {agente}")
         
         try:
             headers = {
@@ -203,57 +209,59 @@ def simular_ataque_bot():
             }
             respuesta = requests.get(URL_APLICACION, headers=headers)
             
-            print(f"\n   Código de respuesta: {respuesta.status_code}")
+            print(f"\n    Código de respuesta: {respuesta.status_code}")
             if respuesta.status_code == 403:
-                print("   ✅ WAF bloqueó el bot (403 Forbidden)")
+                print("    [✓] WAF bloqueó el bot (403 Forbidden)")
                 if 'cf-ray' in respuesta.headers:
-                    print(f"   🔍 ID del bloqueo: {respuesta.headers['cf-ray']}")
+                    print(f"    [info] ID del bloqueo: {respuesta.headers['cf-ray']}")
             else:
-                print("   ❌ ¡Atención! El bot no fue bloqueado")
-                contenido = respuesta.text[:200].replace('\n', '\n   ')
-                print("   Contenido parcial de la respuesta:")
-                print("   " + contenido)
+                print("    [✖] ¡Atención! El bot no fue bloqueado")
+                contenido = respuesta.text[:200].replace('\n', '\n    ')
+                print("    Contenido parcial de la respuesta:")
+                print("    " + contenido)
             
             time.sleep(1)
         
         except requests.exceptions.RequestException as e:
-            print(f"   ❌ Error en la petición: {e}")
+            print(f"    [✖] Error en la petición: {e}")
 
 if __name__ == "__main__":
-    print("\n🔒 Script de Simulación de Ataques Web - Prueba de Seguridad Cloudflare 🔒")
-    print("=" * 70)
-    print("\nEste script simula tres tipos comunes de ataques web para probar la seguridad:")
-    print("\n1. SQL Injection (SQLi):")
-    print("   - Intenta explotar vulnerabilidades en la base de datos")
-    print("   - El WAF debe detectar y bloquear patrones maliciosos en la URL")
+    print("\n╠════════════════════════════════════════════════════════════╣")
+    print("║ Script de Simulación de Ataques Web - Prueba de Seguridad ║")
+    print("╚════════════════════════════════════════════════════════════╝")
+    print("\n[info] Este script simula tres tipos comunes de ataques web para probar la seguridad:")
+    print("\n[#] 1. SQL Injection (SQLi):")
+    print("    - Intenta explotar vulnerabilidades en la base de datos")
+    print("    - El WAF debe detectar y bloquear patrones maliciosos en la URL")
     
-    print("\n2. Cross-Site Scripting (XSS):")
-    print("   - Intenta inyectar código JavaScript malicioso")
-    print("   - El WAF debe detectar y bloquear scripts maliciosos")
+    print("\n[#] 2. Cross-Site Scripting (XSS):")
+    print("    - Intenta inyectar código JavaScript malicioso")
+    print("    - El WAF debe detectar y bloquear scripts maliciosos")
     
-    print("\n3. Bots/Captcha:")
-    print("   - Simula intentos automatizados con diferentes User-Agent")
-    print("   - El WAF/Challenge debe bloquear o lanzar CAPTCHA")
+    print("\n[#] 3. Bots/Captcha:")
+    print("    - Simula intentos automatizados con diferentes User-Agent")
+    print("    - El WAF/Challenge debe bloquear o lanzar CAPTCHA")
     
-    print("\nURL objetivo:", URL_APLICACION)
-    print("=" * 70 + "\n")
+    print(f"\n[info] URL objetivo: {URL_APLICACION}")
+    print("╠════════════════════════════════════════════════════════════╣\n")
     
-    input("Presiona Enter para iniciar la simulación de ataques...")
+    input("[~] Presiona Enter para iniciar la simulación de ataques...")
     
-    # Ejecutar la simulación de SQLi
+    #Ejecutar la simulación de SQLi
     simular_ataque_sqli()
     
-    print("\n" + "=" * 70 + "\n")
-    time.sleep(2) # Espera 2 segundos antes del siguiente ataque
+    print("\n╠════════════════════════════════════════════════════════════╣\n")
+    time.sleep(2)
     
-    # Ejecutar la simulación de XSS
+    #Ejecutar la simulación de XSS
     simular_ataque_xss()
     
-    print("\n" + "=" * 70 + "\n")
-    time.sleep(2) # Espera 2 segundos antes del siguiente ataque
+    print("\n╠════════════════════════════════════════════════════════════╣\n")
+    time.sleep(2)
     
-    # Ejecutar la simulación de Bots/Captcha
+    #Ejecutar la simulación de Bots/Captcha
     simular_ataque_bot()
     
-    print("\n" + "=" * 70)
-    print("🏁 Auditoría finalizada.")
+    print("\n╠════════════════════════════════════════════════════════════╣")
+    print("║ [✓] Auditoría finalizada.")
+    print("╚════════════════════════════════════════════════════════════╝")
