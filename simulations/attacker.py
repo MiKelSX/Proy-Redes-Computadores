@@ -183,7 +183,7 @@ def mostrar_resultado_ataque(respuesta):
 
 def simular_ataque_bot():
     #Simula múltiples intentos de bots para evadir CAPTCHA/Challenge.
-    print("\n╠════════════════════════════════════════════════════════════╗")
+    print("\n╔════════════════════════════════════════════════════════════╗")
     print("║ [~] Iniciando simulación de ataques Bot/Captcha...         ║")
     print("╚════════════════════════════════════════════════════════════╝")
     print("\n[info] Objetivo: Verificar que Cloudflare detiene intentos automatizados.\n")
